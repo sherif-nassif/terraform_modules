@@ -1,5 +1,5 @@
-resource "aws_lb_target_group" "sapper" {
-  name       = "sapper-asg"
+resource "aws_lb_target_group" "sherif" {
+  name       = "sherif-asg"
   port       = var.port
   protocol   = "HTTP"
   vpc_id     = aws_vpc.main.id
@@ -11,7 +11,7 @@ resource "aws_key_pair" "deployer" {
   public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdMpuqqb4ncWZH0PevWFAzMp2+EwSOKPEk/0mir6OjvmvwhUJYFj/B6kJhp00kylXDfn/F2sUrVwI2tN1VNvN/ztMewauQzn+sFHeDjwAAktu7/rzxd7/36iHh1HTLdqUCs/h5DdbLtKlpQTNRhS04Bq639Gui4g+A87KM+bEVHQV/kUcpRSdTdnxfA2Lh8OF9dAD2FtlyCAE0Z1YUTvlfOWRdMpdoIFXiZ1uirb4XM0iQ4Ikpmb5Pk8n0dEnyR9FdOSCi5iH5S/hovKsbTy9sA0zQ/s1k+uiuYc6K4dohRo1cWOKarfi9MsFIcQtdGwQeVpuKo4j2mzeV5y8AmWNL enesshe@optimus"
 }
 
-resource "aws_launch_configuration" "sapper" {
+resource "aws_launch_configuration" "sherif" {
   image_id        = var.image
   instance_type   = var.flavor
   user_data       = file("./user-data.sh")
@@ -23,7 +23,7 @@ resource "aws_launch_configuration" "sapper" {
   }
 }
 
-resource "aws_autoscaling_group" "sapper" {
+resource "aws_autoscaling_group" "sherif" {
   min_size         = 1
   max_size         = 2
   desired_capacity = 1
@@ -33,14 +33,14 @@ resource "aws_autoscaling_group" "sapper" {
     propagate_at_launch = true
   }
   name_prefix          = "terraform-aws-asg-"
-  launch_configuration = aws_launch_configuration.sapper.name
+  launch_configuration = aws_launch_configuration.sherif.name
   vpc_zone_identifier  = [aws_subnet.public_subnet1.id]
 }
 
 resource "aws_autoscaling_policy" "web_cluster_target_tracking_policy" {
   name                      = "staging-web-cluster-target-tracking-policy"
   policy_type               = "TargetTrackingScaling"
-  autoscaling_group_name    = aws_autoscaling_group.sapper.name
+  autoscaling_group_name    = aws_autoscaling_group.sherif.name
   estimated_instance_warmup = 200
 
   target_tracking_configuration {
@@ -53,8 +53,8 @@ resource "aws_autoscaling_policy" "web_cluster_target_tracking_policy" {
 }
 
 
-resource "aws_lb" "sapper" {
-  name               = "sapper-asg-terraform-lb"
+resource "aws_lb" "sherif" {
+  name               = "sherif-asg-terraform-lb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.terraform_lb.id]
@@ -62,7 +62,7 @@ resource "aws_lb" "sapper" {
 }
 
 resource "aws_lb_listener" "terraform" {
-  load_balancer_arn = aws_lb.sapper.arn
+  load_balancer_arn = aws_lb.sherif.arn
   port              = "80"
   protocol          = "HTTP"
 
@@ -74,14 +74,14 @@ resource "aws_lb_listener" "terraform" {
 
 
 resource "aws_lb_target_group" "terraform" {
-  name     = "sapper-asg-terraform"
+  name     = "sherif-asg-terraform"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
 }
 
 resource "aws_autoscaling_attachment" "terraform" {
-  autoscaling_group_name = aws_autoscaling_group.sapper.id
+  autoscaling_group_name = aws_autoscaling_group.sherif.id
   lb_target_group_arn    = aws_lb_target_group.terraform.arn
 }
 
